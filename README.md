@@ -1,8 +1,8 @@
 # 数据库学习记录
 
-记录 MySQL 与 SQL 的学习过程、练习、常见错误及修正经验。后续结合 Java JDBC 和校园出行项目继续学习。
+记录 MySQL、SQL 与 Java JDBC 的学习过程、练习、常见错误及修正经验，后续结合校园出行项目继续巩固。
 
-> 学习状态：完成第一轮核心入门讲解与练习；复杂查询仍需参考和纠正，尚未达到独立熟练使用的程度。
+> 学习状态：完成 SQL 核心入门，并开始 JDBC 连接与参数化查询练习；复杂查询和 Java 数据访问仍需指导，尚未达到独立熟练使用的程度。
 > 本仓库保存学习笔记与 SQL 文本，不上传数据库物理文件、账号密码、连接密钥或真实用户数据。
 
 ## 学习进度
@@ -21,7 +21,10 @@
 | 独立综合查询 | 进行中 | 连接、分组、计数、排序、LIMIT 的组合仍有错误 |
 | 类型、约束与表结构补充 | 待学习 | 日期时间、DECIMAL、UNIQUE、CHECK、ALTER TABLE |
 | 子查询与 EXISTS | 待学习 | 根据业务需要补充 |
-| JDBC 与 Java 数据访问 | 待学习 | 参数化 SQL、结果映射、资源关闭、事务处理 |
+| Maven 与 MySQL 驱动 | 已配置 | Maven 项目与 Connector/J 9.7.0 依赖加载成功 |
+| JDBC 连接与查询 | 已跟做并反馈成功 | 环境变量、连接、参数化查询、结果遍历与未找到分支；仍需巩固 |
+| JDBC 新增 | 已讲解，待验证 | 已提供 InsertStudentTest 示例，尚未确认实际插入结果 |
+| JDBC 修改、删除与事务 | 待实操 | 结果映射、Java 事务处理等仍待进一步学习 |
 | 项目表设计与查询优化 | 待学习 | 按需求设计、索引与 EXPLAIN、备份恢复 |
 
 ## 知识点索引
@@ -37,10 +40,12 @@
 | 提交、回滚及范围 | [事务](#事务) |
 | 普通索引与唯一性 | [索引](#索引) |
 | 问题与纠正经验 | [2026-10-25 踩坑记录](#2026-10-25-踩坑记录) |
+| Maven、驱动、连接、参数与结果集 | [JDBC 晚间学习](#jdbc-evening-2026-10-25) |
+| JDBC 实际错误、运行反馈与下次起点 | [晚间踩坑与修正](#晚间踩坑与修正) · [阶段结论](#本次阶段结论与下次起点) |
 
 ## 每日学习记录
 
-### 2026-10-25：MySQL 与 SQL 核心入门
+### 2026-10-25：SQL 核心入门与 JDBC 初步实践
 
 #### 环境与工具
 
@@ -204,13 +209,124 @@ SHOW INDEX FROM student;
 | 不理解一次执行为何出现 99 和 20 两份结果 | 两条 SELECT 各自产生执行当时的结果 | 切换结果标签；结果标签编号不是学生编号或新建表 |
 | 认为回滚只撤销最近一条 SQL | 事务边界与语句范围混淆 | 从 START TRANSACTION 到提交/回滚判断范围 |
 
-#### 当日学习评价与下一步
+#### 下午阶段评价与当时的下一步
 
 - 能正确回答 AND/OR、分页、外键与部分聚合判断；能独立写简单筛选和排序。
 - 已在反馈后区分 WHERE/HAVING，但多表综合 SQL 仍需要指导，不能把看懂完整答案等同于独立完成。
 - COUNT(*) 与 COUNT(列名) 在左连接中的区别反复出现，应安排短复习。
 - 近期先补表设计、常用类型与约束、独立综合练习；再用 JDBC 完成 Java 保存学生并查询的最小闭环。
 - 校园出行项目以能落地的数据读写为目标，复杂数据库集群与分库分表暂不展开。
+
+<a id="jdbc-evening-2026-10-25"></a>
+
+#### JDBC：Java 连接数据库与参数化查询（晚间补充）
+
+下午完成 SQL 核心入门后，晚间继续创建 JdbcStudy 项目，将 Java 与 MySQL 连接起来。以下区分运行反馈、源码检查和仅提供示例的内容。
+
+##### 已完成的练习
+
+| 内容 | 实际进度 |
+|---|---|
+| Maven 项目 | 首次误建为普通 Java 项目，删除空项目后重新创建；已检查 pom.xml 与 src/main/java 等目录 |
+| MySQL 驱动 | 使用 com.mysql:mysql-connector-j:9.7.0，学习者反馈依赖加载成功 |
+| 数据库连接 | 学习者反馈“数据库连接成功”；理解地址、账号、密码与 Connection 的作用 |
+| 环境变量 | 代码从 System.getenv("DB_PASSWORD") 读取密码；学习者反馈运行配置设置成功 |
+| 参数化查询 | 按学号查询；曾遗漏参数设置，已调整为先 setString 再 executeQuery，修改后通过编译检查 |
+| 查询成功与未找到 | 学习者反馈两个分支运行成功；用 found 标记是否读取到匹配记录 |
+| 新增学生 | 已讲解 executeUpdate 并提供 InsertStudentTest 示例；尚未收到插入成功及数据库查询验证的反馈 |
+| 修改、删除及 Java 事务 | 尚未完成 JDBC 实操，不把下午 SQL 事务实验计为 Java 事务实践 |
+
+##### 核心执行过程
+
+```text
+读取连接信息与密码
+→ 获取 Connection
+→ 准备 SQL 和 PreparedStatement
+→ 设置 ? 参数
+→ executeQuery 执行查询
+→ ResultSet.next 移动到结果行
+→ getString 读取当前行字段
+→ 自动关闭结果集、语句对象和连接
+```
+
+- Maven 管理项目依赖、编译、测试和打包，不属于 SSM。SSM 指 Spring、Spring MVC、MyBatis 的组合。
+- JDBC 提供接口与 API，MySQL 驱动提供具体实现；Connection、PreparedStatement、ResultSet 的使用体现接口与多态。
+- IDEA 启动 Java 程序；Workbench 是另一个数据库客户端，不必保持打开，但 MySQL 服务需要运行。
+- JDBC URL 指向服务地址、端口和数据库，而非 D 盘数据文件路径；文件由 MySQL 管理。
+- import 只引入类型名称，不负责下载驱动或建立连接。
+- DB_PASSWORD 是环境变量名称，变量值才是密码。IDEA 分列表格填写名称和值；单行输入方式为 DB_PASSWORD=实际密码，不把真实密码写进源码或学习记录。
+- 环境变量按运行配置设置；新建 InsertStudentTest 的运行配置时，需要另行确认是否传入 DB_PASSWORD。
+- password 为 null 表示变量未找到，空字符串表示没有填写值；检查只判断有没有提供密码，不验证密码是否正确。
+- Connection 代表数据库连接和会话的操作入口，不是整张表或数据库的副本。
+- SQL 字符串仅保存文本；prepareStatement 创建执行对象；executeQuery 才执行查询。
+- PreparedStatement 保存 SQL 与已设置的参数，因此调用无参 executeQuery() 时不再传入 SQL。
+- 参数从 1 开始编号，setString 设置字符串，setInt 设置整数；必须在执行前设置参数。? 不需要写在 SQL 单引号中。
+- ResultSet 初始位于第一行之前，next() 同时移动并返回 boolean；getString("name") 从当前行读取姓名，不移动行。
+- SQL 决定返回哪些行和列，Java 遍历的是本次返回的结果；能匹配 SQL 条件不等于条件一定符合真正的业务需求。
+- 当前默认的小结果集查询可按“驱动接收并在 Java 内存缓冲结果，再逐行读取”理解；next() 不代表重新执行 SELECT。流式或分批获取的配置暂不展开。
+- 查询结果不会自动变成 Student 对象，需要读取字段并自行构造；对象映射尚未独立实践。
+- try-with-resources 自动关闭资源。本例先关 ResultSet，再关 PreparedStatement，最后关 Connection；关闭连接不删除数据或停止 MySQL 服务。
+- 外层 catch 不仅可能捕获连接错误，也可能捕获查询与读取错误；“数据库操作失败”比统一写“连接失败”更准确。此处记录建议，不宣称已修改该提示。
+- 用户希望按真实代码每次解释少量语句。当前优先掌握执行流程、返回值、参数、读取与关闭；网络握手、驱动发现与预编译内部机制留待深入。
+
+##### 查询与未找到提示的核心示例
+
+放在已建立连接的代码内部使用；此段只查询，不修改数据库。密码仍由外层连接代码从环境变量读取。
+
+```java
+String sql = "SELECT student_id, name FROM student WHERE student_id = ?";
+
+try (PreparedStatement statement = connection.prepareStatement(sql)) {
+    statement.setString(1, "2026001");
+
+    try (ResultSet resultSet = statement.executeQuery()) {
+        boolean found = false;
+
+        while (resultSet.next()) {
+            found = true;
+
+            String studentId = resultSet.getString("student_id");
+            String name = resultSet.getString("name");
+            System.out.println(studentId + "：" + name);
+        }
+
+        if (!found) {
+            System.out.println("没有找到该学生");
+        }
+    }
+}
+```
+
+用已存在学号 2026001 验证找到分支，用 not-exist-test 验证未找到分支。这里是经过讲解整理的学习示例，尚未将 JdbcStudy 工程源码上传到仓库。
+
+##### 晚间踩坑与修正
+
+| 疑问或错误 | 理清后的结论 |
+|---|---|
+| 把 Maven 当成 SSM | Maven 是构建和依赖管理工具；SSM 是三个框架的组合 |
+| 运行配置只填密码，没有提供变量名 | 程序按 DB_PASSWORD 查找变量，必须同时配置名称与值 |
+| SQL 改成带 ?，仍直接执行 | 参数未提供会报错；先创建 statement，设置参数，再创建执行查询的 ResultSet |
+| 同一个 try 资源列表中立即执行查询 | 大括号之前资源已依次初始化，无法在中间设置参数；拆成嵌套 try |
+| 不清楚等号右边调用什么 | statement.executeQuery() 调用执行对象的方法，返回 ResultSet；左边变量接收其引用 |
+| 以为结果拿到后就在第一行 | 初始尚未选中数据行，必须先成功 next() 才读取字段 |
+| 以为 next() 返回学生 | 它返回 boolean，学生字段通过当前行的 getter 获取 |
+| 以为 while 结果为空仍执行一次 | 条件中的 next() 调用 1 次，循环体执行 0 次 |
+| 以为每次 next() 都重新查询数据库 | 操作的是本次查询的结果；当前默认方式主要在缓冲结果中移动 |
+| 不明白为什么只读到小林 | SQL 与参数只查询学号 2026001，循环不会自动读取其他未返回的学生 |
+| 以为 next() 自动把 found 改为 true | 真正修改变量的是循环内的 found = true；next() 只决定是否进入循环 |
+| 认为循环结束时 found 会变回 false | next() 与 found 是独立状态；有过匹配就保持 true，除非显式再次赋值 |
+| 混淆“表有数据”和“查询有数据” | 查不到指当前条件返回零行，即使原表有其他学生也正常 |
+| 查询和新增的执行方法混淆 | executeQuery 返回结果集；本次普通 INSERT 用 executeUpdate，成功新增一行预期返回 1 |
+| 为避免每次输入密码想写死密码 | 改为运行配置环境变量；不提交带密码的 IDEA 配置 |
+
+##### 本次阶段结论与下次起点
+
+- 已完成连接与参数化查询的第一轮跟做，运行反馈确认连接、环境变量、找到与未找到分支。
+- 参数设置顺序的修改曾通过 JDK 25 编译检查；没有把编译通过等同于完整数据库业务验收。
+- 返回值、游标与循环执行顺序经过多轮解释才逐渐理解，仍需短练习巩固，不计为独立熟练掌握。
+- 新增练习已提供完整示例，计划使用学号 2026005、姓名小陈、年龄 18。该普通 INSERT 重复运行会因主键冲突失败；是否已插入尚待确认。
+- 下次先确认 InsertStudentTest 输出“新增行数：1”，并在 Workbench 查询到对应记录，再学习 JDBC 修改、删除。
+- 当前仓库更新学习记录；本次不上传本地运行配置、密码或未检查的 Java 工程文件。
 
 ## 每次学习后的更新规则
 
