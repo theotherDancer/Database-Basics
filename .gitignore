@@ -1,0 +1,8 @@
+# Local IDE settings and generated files
+**/.idea/
+**/target/
+*.iml
+*.class
+.env
+.env.*
+!.env.example
