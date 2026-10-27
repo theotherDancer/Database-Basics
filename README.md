@@ -2,7 +2,7 @@
 
 记录 MySQL、SQL 与 Java JDBC 的学习过程、练习、常见错误及修正经验，后续结合校园出行项目继续巩固。
 
-> 学习状态（更新至 2026-10-26）：SQL 与 JDBC 主要内容已完成第一轮学习，新增约束、表关系、子查询、三大范式及班次报名练习。当前以指导下实践为主，独立编写连接查询仍需巩固；StudentDao 已创建，方法迁移尚未开始。
+> 学习状态（更新至 2026-10-27）：SQL/JDBC 主要内容完成第一轮学习；学生管理程序已接入 DAO 与完整菜单，学习者反馈正常操作及部分异常场景验证完成。开始 Map 集合练习，基础操作、计数练习已编译运行，List → Map 方法已检查，main 调用验证待完成。当前仍以指导下实践为主。
 > 本仓库保存学习笔记、SQL 整理示例及 JDBC 源码快照，不上传数据库物理文件、密码、连接密钥、IDEA 运行配置或真实用户数据。
 
 ## 学习进度
@@ -26,18 +26,27 @@
 | JDBC 新增 | 学习者反馈运行成功 | InsertStudentTest；普通 INSERT 重复执行可能主键冲突 |
 | JDBC 修改、删除与事务 | 已跟做并反馈成功 | executeUpdate；同一连接的 commit/rollback，两条事务路径均反馈成功 |
 | 表关系与项目表设计 | 已进行指导练习 | 一对一、一对多、多对多、联合主键、三大范式、校园班次报名 |
+| DAO 分工与方法迁移 | 已完成并编译检查 | findById/findAll 迁入 StudentDao，新增 insert/updateAge/deleteById |
+| 学生管理菜单 | 已完成指导练习，学习者反馈测试成功 | 0～5 选项、输入校验、删除确认、写入分支异常处理 |
+| Map 基础与遍历 | 已讲解并部分实践 | put/get/remove/contains、entrySet；HashMap 不保证遍历顺序 |
+| Map 默认值与首次登记 | 已讲解，需巩固 | getOrDefault 不写入；putIfAbsent 遇已有非 null 值不覆盖 |
+| Map 计数 | 已编译运行 | 按学号累计次数，size 表示不同键的数量 |
+| List → Map 对象索引 | 方法已检查并编译 | indexById 保留重复学号的最后一个对象；main 调用验证待完成 |
 
 ## 仓库内容与运行说明
 
-- [JdbcStudy](JdbcStudy)：原样保存的 Maven 学习工程（pom.xml 和 7 个 Java 文件）。
-- [今日 SQL](sql/2026-10-26)：按结构、数据与约束实验、只读查询分为三份；由本次课程及 Workbench 草稿整理，不是原始草稿或数据库导出。
+- [JdbcStudy](JdbcStudy)：原样保存的 Maven 学习工程（pom.xml 和 10 个 Java 文件，含 Map 练习）。
+- [10 月 26 日 SQL](sql/2026-10-26)：按结构、数据与约束实验、只读查询分为三份；由本次课程及 Workbench 草稿整理，不是原始草稿或数据库导出。
 - 使用 JDK 25，IDEA 打开 JdbcStudy/pom.xml 加载 Maven；驱动版本由 pom.xml 声明。
 - MySQL 本地数据库为 campus_learning。各 main 的运行配置需要设置 DB_PASSWORD 环境变量；变量名和密码值分开填写，不提交实际密码。
-- ConnectionTest 提供学号查询、all 查询全部、0 退出；当前提示文字尚未列出 all，但分支已存在。
+- ConnectionTest 为学生管理入口：1 查询全部、2 按学号查询、3 新增、4 修改年龄、5 删除、0 退出。原 all 输入方式已替换为菜单选项。
+- StudentDao 负责五个数据库方法；Student 目前仅保存学号和姓名，菜单查询不显示年龄，修改年龄后需在 Workbench 查看 age。
+- MapPracticeTest 和 MapCountTest 为不连接数据库的练习，可独立运行；StudentMapTest 当前仅有 indexById 方法，没有 main。
+- Map 练习保留在原本 JdbcStudy 工程目录中；它们是 Java 集合衔接练习，不代表 Map 会自动持久化到数据库。
 - InsertStudentTest/UpdateStudentTest/DeleteStudentTest 使用练习学号 2026005，分别新增小陈、修改年龄为 19、删除记录；按需要逐个运行，不是自动测试套件。
 - TransactionTest 当前为成功路径，会将 2026001、2026002 的年龄改成 30、40 并提交。回滚演示曾将第二个学号改为不存在的 not-exist-test；已提交内容不能靠后续 rollback 撤销。
 - SQL 建表、改结构和 INSERT 不宜在已有学习库整体重跑。故意报错和取消报名的语句已注释，需单独选择执行。班次编号应使用实际生成值。
-- 本次仅编译检查，未重新运行数据库写入实验；本机 IDEA 工程、Workbench 草稿和数据库保持原状。
+- 最近一次上传检查：JDK 25 编译全部 10 个 Java 文件，并运行两个纯内存 Map 练习；未重新执行数据库写入。本机学习源码不做代改，IDEA 配置和数据库不上传。
 
 ## 知识点索引
 
@@ -60,6 +69,10 @@
 | 子查询、EXISTS、SELECT 1 | [子查询](#subquery-2026-10-26) |
 | 班次报名与收尾查询 | [综合练习](#departure-2026-10-26) |
 | 今日错误、验证范围与下次起点 | [踩坑与进度](#review-2026-10-26) |
+| DAO、完整菜单与参数返回值 | [10 月 27 日学生管理程序](#dao-menu-2026-10-27) |
+| Map 方法、默认值与首次登记 | [Map 方法速查](#map-2026-10-27) |
+| 对象引用、List 与 Map、索引方法 | [对象与转换](#map-objects-2026-10-27) |
+| 今日坑点、测试证据与下次起点 | [今日验证与后续](#review-2026-10-27) |
 
 ## 每日学习记录
 
@@ -464,6 +477,153 @@ try (PreparedStatement statement = connection.prepareStatement(sql)) {
 **下一次从这里继续：** 先把 findById 搬入已经创建的 StudentDao，改为 StudentDao.findById(connection, inputId) 调用并验证；再整理其他操作、编写控制台菜单。尚未完成 DAO 迁移，也未进入 Spring/SSM。
 
 
+
+### 2026-10-27：学生管理程序收尾与 Map 集合
+
+> 在指导下完成代码组织和交互流程；运行反馈、编译检查和纯内存练习结果分别记录，不把看懂或编译通过等同于独立熟练掌握。10 月 26 日的空 DAO 和“下一次迁移”是当时状态，本日已推进完成。
+
+<a id="dao-menu-2026-10-27"></a>
+
+#### 学生管理程序：从零散示例到完整菜单
+
+制作顺序：
+
+1. 已有 MySQL 学生表和 Maven/JDBC 环境，前期先分别跑通查询、新增、修改、删除。
+2. 将查询结果映射为 Student；查询全部返回 List<Student>，而不是只在查询方法中打印。
+3. 把固定示例改为参数化方法，接收调用者传入的学生信息，返回结果供入口使用。
+4. 将 findById、findAll 从 ConnectionTest 搬入 StudentDao；起初复制后遗留旧方法，检查后明确应删除旧副本。静态导入可以编译，但为方便理解，统一明确写 StudentDao.方法名。
+5. 在 DAO 增加 insert、updateAge、deleteById；数据库连接由 main 创建，传给方法复用。
+6. 按查询全部、按学号查询、新增、修改年龄、删除、退出的顺序逐个接入菜单。
+7. 增加输入校验、异常处理和删除确认，逐步验证正常与失败路径。
+
+当前分工：
+
+| 类 | 职责 |
+|---|---|
+| ConnectionTest | 建立连接、输入、校验、菜单调度和展示 |
+| StudentDao | 执行学生表相关 SQL，返回数据或影响行数 |
+| Student | 保存查询得到的学号、姓名 |
+
+```text
+选择菜单 → 输入业务数据 → 校验 → 调用 DAO
+→ 设置 SQL 参数 → 执行 → 返回对象/集合/行数 → 显示 → 返回菜单
+```
+
+| DAO 方法 | 参数含义 | 返回规则 |
+|---|---|---|
+| findById(connection, studentId) | 已有连接、学号 | Student，未找到返回 null |
+| findAll(connection) | 已有连接 | List<Student>，无记录为空集合 |
+| insert(connection, studentId, name, age) | 连接和新增字段 | 普通单行 INSERT 成功预期 1 |
+| updateAge(connection, studentId, age) | 按学号修改年龄 | 未匹配返回 0，不因不存在自动抛异常 |
+| deleteById(connection, studentId) | 按学号删除 | 删除一行返回 1，未找到返回 0；有关联子记录可能因外键被拒绝 |
+
+- DAO 是普通 Java 类的数据访问分工，不需要安装新框架；当前方法为 static，通过类名调用。
+- 方法参数顺序与 SQL 问号顺序不必一致：updateAge 的 SQL 第一个问号是年龄，第二个是学号，setter 的序号才决定绑定位置。
+- return statement.executeUpdate() 将影响行数交还调用者；返回前 try-with-resources 仍会关闭 statement，不关闭传入的 connection。
+- nextLine() 一直返回 String。输入菜单数字 1 得到的是 "1"，所以用 equals 比较字符串内容，不是因为新增菜单才变成引用类型。
+- Integer.parseInt 将年龄字符串转成 int；不能转换时捕获 NumberFormatException，再用 continue 回菜单。
+- 学号/姓名非空，年龄限定 0～150；菜单输入无效时提示重试。
+- 删除前输入 y 才调用 DAO，其他输入取消；输入 0 用 break 退出菜单。
+- 写入分支分别捕获 SQLException，失败后继续菜单。查询分支的 SQLException 仍交外层捕获并结束程序，不宣称所有数据库异常都可恢复继续。
+- 外层提示已从“连接失败”修改为“数据库操作失败”，实际源码已确认。
+- DAO 可被其他入口复用；当前还未接入网页、HTTP 或 Spring。
+- 修改年龄后菜单查询仍只展示学号与姓名，验证 age 需要 SQL 查询。
+
+<a id="map-2026-10-27"></a>
+
+#### Map：键值对应关系与常用方法
+
+List 按下标取元素；Map 按键取值。HashMap 不保证遍历顺序。键不能重复，值可以重复；不同学号可以对应同名学生。
+
+| 方法 | 返回值/效果 | 关键区别 |
+|---|---|---|
+| put(key, value) | 返回旧值；没有旧值时返回 null | 已有键时替换对应值，数量不增加 |
+| get(key) | 返回对应值，不存在返回 null | 不会自动新增 |
+| containsKey / containsValue | boolean | 分别检查键/值 |
+| remove(key) | 返回删除前的值；不存在返回 null | 删除整组关系，不是销毁对象 |
+| getOrDefault(key, defaultValue) | 已有映射的值，否则默认值 | 不把默认值写入 Map；已映射到 null 时仍返回 null |
+| putIfAbsent(key, value) | 已有非 null 值时返回旧值并保留；否则写入并返回 null | 有键但值为 null 时也会写入 |
+| size() | int | 数键值对，不是累计次数 |
+| entrySet() | 全部键值对的集合视图 | 增强 for 中 Entry 代表一整组，通过 getKey/getValue 取两部分 |
+
+- Map<String,String> 的键值都是字符串；直接写字符串字面量要双引号，传字符串变量时不加引号。
+- put(studentId, name) 使用变量里的值；put("studentId", name) 的键是固定文字 studentId。
+- Map<Integer,String> 可传入整数键；泛型不能直接使用 int，这里使用 Integer。
+- get 返回什么类型，取决于值类型；Map<String,Student>.get 返回 Student。
+- Map 是内存容器，不会自动连接或更新 MySQL。
+- 在“不保存 null 姓名”的约定下，可用 putIfAbsent 返回 null 表示首次写入；不把它推广为所有含 null 的 Map 的严格新增判定。
+
+**计数练习：**
+
+```java
+for (String studentId : studentIds) {
+    int oldCount = counts.getOrDefault(studentId, 0);
+    counts.put(studentId, oldCount + 1);
+}
+```
+
+读取旧次数、加一、再写回是两个步骤。练习数组共 6 条，2026001/02/03 分别出现 3/2/1 次，Map 大小为 3。
+用途类似 SQL 的分组计数，但这里由 Java 在内存完成。
+
+<a id="map-objects-2026-10-27"></a>
+
+#### 对象引用与 List → Map
+
+- put 保存已存在 Student 对象的引用，不会再创建一个 Student。
+- get 取出的引用与原变量可能指向同一个对象；此时使用 == 可以检查是否为同一对象。
+- 删除 Map 中的关系不会销毁仍被其他变量引用的对象。
+- List 与 Map 是两个容器，向 Map 登记 List 中的学生不会清空或改变 List；二者可以共享同一批对象引用。
+- list.clear() 只清空 List，Map 仍可引用并访问那些 Student。
+- List 可保留两个同学号对象；以学号作为 Map 键时，普通 put 会保留最后一个对象引用。
+
+本次编写的转换方法：
+
+```java
+public static Map<String, Student> indexById(List<Student> list) {
+    Map<String, Student> students = new HashMap<>();
+    for (Student student : list) {
+        students.put(student.getStudentId(), student);
+    }
+    return students;
+}
+```
+
+约定输入为普通非 null 的学生列表及学生对象；本轮尚未扩展 null 输入处理。重复学号保留最后一个，不修改源 List。
+StudentMapTest 的 main 演示已给出，但实际文件仍只有 indexById，不能标为 main 已运行。
+
+<a id="review-2026-10-27"></a>
+
+#### 今日踩坑、验证证据与下一步
+
+| 疑问/错误 | 理清后的结论 |
+|---|---|
+| 为什么菜单判断用 equals | nextLine 返回 String，比较内容；数字形式的字符串也不等于 int |
+| 移动方法后保留旧副本 | 删除原类副本，调用改为 StudentDao.方法名 |
+| 静态导入让调用看起来没变 | 语法有效；本阶段显式类名更容易识别方法所属 |
+| put 的 key 是否加引号 | 看键类型及是否使用变量，字符串字面量才加双引号 |
+| getOrDefault 后以为大小增加 | 返回默认值不写入，原来一组仍是一组 |
+| putIfAbsent 以为替换成新姓名 | 已有非 null 值时保留旧值，返回的也是旧值 |
+| 把 size 当作累计出现次数 | 次数存在 value 中，size 数的是不同键 |
+| List/Map 不清楚是否复制对象 | 两容器共享引用，不是复制或搬走对象 |
+| 当前无法从菜单看到年龄 | Student/查询仅有学号姓名，修改年龄需 Workbench 查 age |
+| 将查无结果当异常 | 返回 null 或 0 属于可正常处理的业务结果 |
+
+**本次上传前的验证：**
+
+| 对象 | 验证方式与结论 |
+|---|---|
+| 全部 10 个 Java 文件 | 本机 JDK 25 编译通过 |
+| MapPracticeTest | 实际运行：小林、小周、2026001：小林（新） |
+| MapCountTest | 实际运行：三个学号分别为 3、2、1 次，顺序不作为验收条件 |
+| StudentMapTest | 方法检查、编译通过；尚无 main，调用验证待完成 |
+| 学生管理菜单 | 本轮学习者反馈查询、增删改、删除确认及重复学号/非法年龄测试完成；上传时不重新连接数据库执行写入 |
+
+源码原样上传，保留格式和学习痕迹。本次仅修改仓库中两个原有 Java 文件并新增三个 Map 练习；pom.xml 和其他旧源码无变化。
+没有上传密码、IDEA 运行配置、编译产物或数据库物理文件。
+
+**仍需巩固：** 方法返回值与 Map 实际内容的区别、putIfAbsent 的保留规则、引用共享、独立组织代码。
+**下次起点：** 在 StudentMapTest 补 main，构造三个学生（其中两个同学号），调用 indexById，验证输出 3、2、小林（新），再继续集合收尾。
+
 ## 每次学习后的更新规则
 
 1. 按实际学习日期追加记录，保留旧记录，不虚构未学习日期。
@@ -471,4 +631,3 @@ try (PreparedStatement statement = connection.prepareStatement(sql)) {
 3. 区分已讲解、已跟做、独立完成、尚待验证；记录错误与修正，不只记录正确答案。
 4. 新增 SQL 示例时说明运行前提、是否会修改数据以及重复执行的影响。
 5. 每次学习收尾时整理并提交，不对没有发生的新学习做定时空更新。
-
