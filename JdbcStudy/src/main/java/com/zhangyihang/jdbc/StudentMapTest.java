@@ -16,4 +16,19 @@ public class StudentMapTest {
         }
         return students;
     }
+
+    public static void main(String[] args) {
+        List<Student> list = new java.util.ArrayList<>();
+        list.add(new Student("2026001", "小林"));
+        list.add(new Student("2026002", "小周"));
+        list.add(new Student("2026001", "小林（新）"));
+
+        Map<String, Student> students = indexById(list);
+
+        System.out.println(list.size());
+        System.out.println(students.size());
+        System.out.println(students.get("2026001").getName());
+    }
+
+
 }
