@@ -2,7 +2,7 @@
 
 记录 MySQL、SQL 与 Java JDBC 的学习过程、练习、常见错误及修正经验，后续结合校园出行项目继续巩固。
 
-> 学习状态（更新至 2026-10-27）：SQL/JDBC 主要内容完成第一轮学习；学生管理程序已接入 DAO 与完整菜单，学习者反馈正常操作及部分异常场景验证完成。开始 Map 集合练习，基础操作、计数练习已编译运行，List → Map 方法已检查，main 调用验证待完成。当前仍以指导下实践为主。
+> 学习状态（更新至 2026-10-28）：学生管理程序完成指导练习；集合排序、泛型方法、Lambda 与 Stream 常用处理已学习并完成部分编码验证。新建 MavenStudy，引入 Logback，经历 POM 修正与依赖下载失败排查，已在 IDEA 实际观察到 -U compile 的 BUILD SUCCESS。后续跟随视频继续 Maven，再进入 JavaWeb，前端暂缓。
 > 本仓库保存学习笔记、SQL 整理示例及 JDBC 源码快照，不上传数据库物理文件、密码、连接密钥、IDEA 运行配置或真实用户数据。
 
 ## 学习进度
@@ -21,7 +21,7 @@
 | 独立综合查询 | 仍需巩固 | ON 匹配条件、分组统计、排序字段与 ASC，暂不计为独立熟练 |
 | 类型、约束与表结构补充 | 已讲解并部分实践 | DATE/DATETIME、DECIMAL、ALTER TABLE、NOT NULL、UNIQUE、DEFAULT；CHECK 尚未实践 |
 | 子查询与 EXISTS | 已讲解，需巩固 | IN、AVG 单值子查询、相关 EXISTS/NOT EXISTS、SELECT 1 |
-| Maven 与 MySQL 驱动 | 已配置 | Maven 项目与 Connector/J 9.7.0 依赖加载成功 |
+| Maven 与依赖入门 | 已配置并初步验证 | JdbcStudy 引入 MySQL 驱动；MavenStudy 引入 Logback，配置与强制重试已验证 |
 | JDBC 连接与查询 | 已跟做并反馈成功 | 环境变量、连接、参数化查询、结果遍历与未找到分支；仍需巩固 |
 | JDBC 新增 | 学习者反馈运行成功 | InsertStudentTest；普通 INSERT 重复执行可能主键冲突 |
 | JDBC 修改、删除与事务 | 已跟做并反馈成功 | executeUpdate；同一连接的 commit/rollback，两条事务路径均反馈成功 |
@@ -31,22 +31,32 @@
 | Map 基础与遍历 | 已讲解并部分实践 | put/get/remove/contains、entrySet；HashMap 不保证遍历顺序 |
 | Map 默认值与首次登记 | 已讲解，需巩固 | getOrDefault 不写入；putIfAbsent 遇已有非 null 值不覆盖 |
 | Map 计数 | 已编译运行 | 按学号累计次数，size 表示不同键的数量 |
-| List → Map 对象索引 | 方法已检查并编译 | indexById 保留重复学号的最后一个对象；main 调用验证待完成 |
+| List → Map 对象索引 | 已编译运行 | StudentMapTest 补 main，验证 3、2、小林（新） |
+
+| 集合排序 | 基础代码已运行，多条件规则已讲解 | Collections.reverse/sort、Comparator、thenComparing、reversed |
+| 泛型、包装类与泛型方法 | 已讲解并完成小练习 | 类型约束、Integer 拆箱 null、first(List<T>) |
+| Lambda 与方法引用 | 基础已讲解，removeIf 已运行 | 函数式接口、Predicate、forEach、方法引用 |
+| Stream 常用步骤 | 综合练习已编译运行 | filter/map/count/distinct/sorted/limit/toList |
+| MavenStudy 新项目 | 已创建、配置并反馈打包成功 | IDEA 自带 Maven 3.9.16，JDK 25；本次上传 pom.xml，src 暂无源文件 |
+| Maven 仓库、范围与生命周期 | 后续系统学习 | 已用 package/compile/-U，尚未完整掌握 test/install、scope 等 |
+| JavaWeb | 尚未正式实践 | 计划跟随 B 站课程从 Maven 开始，前端暂缓 |
 
 ## 仓库内容与运行说明
 
-- [JdbcStudy](JdbcStudy)：原样保存的 Maven 学习工程（pom.xml 和 10 个 Java 文件，含 Map 练习）。
+- [JdbcStudy](JdbcStudy)：原样保存的 Maven 学习工程（pom.xml 和 16 个 Java 文件，含集合、泛型、Lambda、Stream 练习）。
 - [10 月 26 日 SQL](sql/2026-10-26)：按结构、数据与约束实验、只读查询分为三份；由本次课程及 Workbench 草稿整理，不是原始草稿或数据库导出。
 - 使用 JDK 25，IDEA 打开 JdbcStudy/pom.xml 加载 Maven；驱动版本由 pom.xml 声明。
 - MySQL 本地数据库为 campus_learning。各 main 的运行配置需要设置 DB_PASSWORD 环境变量；变量名和密码值分开填写，不提交实际密码。
 - ConnectionTest 为学生管理入口：1 查询全部、2 按学号查询、3 新增、4 修改年龄、5 删除、0 退出。原 all 输入方式已替换为菜单选项。
 - StudentDao 负责五个数据库方法；Student 目前仅保存学号和姓名，菜单查询不显示年龄，修改年龄后需在 Workbench 查看 age。
-- MapPracticeTest 和 MapCountTest 为不连接数据库的练习，可独立运行；StudentMapTest 当前仅有 indexById 方法，没有 main。
+- MapPracticeTest、MapCountTest、StudentMapTest 等为不连接数据库的练习；StudentMapTest 现已添加 main 并验证重复键覆盖规则。
+- [MavenStudy/pom.xml](MavenStudy/pom.xml)：独立 Maven 入门项目配置，包含 ch.qos.logback:logback-classic:1.6.6。目前实际 src 没有 Java 文件，因此本次仅上传 pom.xml，不编造日志示例或 HelloWorld 源文件。
+- IDEA 打开对应项目的 pom.xml 即可导入。MavenStudy 的构建成功验证了依赖解析和构建流程，不代表已经写出日志业务代码。
 - Map 练习保留在原本 JdbcStudy 工程目录中；它们是 Java 集合衔接练习，不代表 Map 会自动持久化到数据库。
 - InsertStudentTest/UpdateStudentTest/DeleteStudentTest 使用练习学号 2026005，分别新增小陈、修改年龄为 19、删除记录；按需要逐个运行，不是自动测试套件。
 - TransactionTest 当前为成功路径，会将 2026001、2026002 的年龄改成 30、40 并提交。回滚演示曾将第二个学号改为不存在的 not-exist-test；已提交内容不能靠后续 rollback 撤销。
 - SQL 建表、改结构和 INSERT 不宜在已有学习库整体重跑。故意报错和取消报名的语句已注释，需单独选择执行。班次编号应使用实际生成值。
-- 最近一次上传检查：JDK 25 编译全部 10 个 Java 文件，并运行两个纯内存 Map 练习；未重新执行数据库写入。本机学习源码不做代改，IDEA 配置和数据库不上传。
+- 最近一次上传检查（10 月 28 日）：JDK 25 编译 JdbcStudy 全部 16 个 Java 文件，运行 7 个纯内存练习；未重新执行数据库写入。MavenStudy 的 -U compile 成功来自本轮直接观察的 IDEA 输出。本机学习源码保留原貌，IDEA 配置、下载缓存、数据库不上传。
 
 ## 知识点索引
 
@@ -73,6 +83,12 @@
 | Map 方法、默认值与首次登记 | [Map 方法速查](#map-2026-10-27) |
 | 对象引用、List 与 Map、索引方法 | [对象与转换](#map-objects-2026-10-27) |
 | 今日坑点、测试证据与下次起点 | [今日验证与后续](#review-2026-10-27) |
+| 集合排序与比较器 | [10 月 28 日排序](#sort-2026-10-28) |
+| 泛型方法、Integer、装箱拆箱 | [泛型与空值](#generics-2026-10-28) |
+| Lambda、Predicate 与方法引用 | [Lambda 基础](#lambda-2026-10-28) |
+| Stream 筛选、转换、统计与去重 | [Stream 常用流水线](#stream-2026-10-28) |
+| IDEA Maven 配置、依赖与下载错误 | [Maven 实践](#maven-2026-10-28) |
+| 今日源码、运行证据与下次起点 | [验证及后续](#review-2026-10-28) |
 
 ## 每日学习记录
 
@@ -623,6 +639,168 @@ StudentMapTest 的 main 演示已给出，但实际文件仍只有 indexById，�
 
 **仍需巩固：** 方法返回值与 Map 实际内容的区别、putIfAbsent 的保留规则、引用共享、独立组织代码。
 **下次起点：** 在 StudentMapTest 补 main，构造三个学生（其中两个同学号），调用 indexById，验证输出 3、2、小林（新），再继续集合收尾。
+
+
+### 2026-10-28：集合与 Stream 收尾、Maven 入门
+
+> 保留前几天的历史进度；10 月 27 日“StudentMapTest 未添加 main”的状态已于本日更新。下列区分已讲解、代码实际存在和运行验证，不将一个示例推广为全部熟练掌握。
+
+<a id="sort-2026-10-28"></a>
+
+#### 集合排序与比较器
+
+- Collections.sort(list) 按自然顺序升序修改原 List；重复元素不会被删除。
+- Collections.reverse(list) 仅反转当前元素位置，不会比较大小。
+- 降序排序可使用 Collections.sort(list, Collections.reverseOrder())。
+- 对象排序可使用 students.sort(Comparator.comparing(Student::getStudentId))；当前等长数字学号按字符串比较符合例子预期，不能据此认定任意数字字符串都按数值排序。
+- 姓名默认字符串排序不等于中文拼音排序。
+- thenComparing 只在前一比较相等时使用后一规则；例：先姓名、同名再学号。
+- reversed 放在内层学号比较器，只反转学号规则；放在整个组合最后，反转整套比较规则。
+- 已讲解多条件与局部反转，但当前 ListSortTest 实际只保留整数反转/升降序、学生按学号升序（同一句 sort 写了两次）。保留学习源码，不将未保存的讲解示例记为代码验收。
+
+<a id="generics-2026-10-28"></a>
+
+#### 泛型、包装类型与泛型方法
+
+- List<Student> 限制按 Student 类型存取；Map<String,Integer> 的键是字符串、值是整数包装类型，交换两段字符串的位置并不能使类型符合。
+- 字符串字面量需要双引号；不加引号会被当作变量名。Java 支持中文标识符，但变量必须先声明并具有合适类型。
+- 泛型不能直接使用 int，使用 Integer；int → Integer 为装箱，Integer → int 为拆箱。
+- Integer 可以为 null；接收 null 到 Integer 变量本身不报错，但拆箱成 int 会抛 NullPointerException。
+- get 不存在键返回 null；计数只存非空整数时可用 getOrDefault(key,0)。已有键映射为 null 时，getOrDefault 仍返回 null。
+- containsKey 可以区分“没登记”和“登记了 0 次”，是否需要区分取决于业务。
+- 泛型方法声明 public static <T> T first(List<T> list)：<T> 声明类型参数，返回 T，接收 List<T>；调用时通常可推断类型。
+- 输入 List<Integer> 时返回 Integer，不是 int；空列表由方法主动 return null。输入列表本身为 null 的处理不在本轮示例内。
+- GenericMethodTest 起初直接打印 List，得到 [小林]、[10]、[]；补上 first 和实际调用后才输出 小林、10、null。
+
+<a id="lambda-2026-10-28"></a>
+
+#### Lambda、函数式接口与方法引用
+
+- 函数式接口只有一个抽象方法（基础理解）；Lambda 提供接口要求的具体逻辑。Calculator 示例用于说明参数与返回值。
+- Predicate<String> 的 test 返回 boolean，适合提供条件；removeIf 将每个姓名交给条件，true 删除，false 保留。
+- names.removeIf(name -> name.isBlank()) 删除空字符串和全空白姓名；Lambda 不负责自己遍历，遍历/删除由 removeIf 完成。
+- forEach(name -> System.out.println(name)) 对每个元素执行打印动作，不要求返回判断结果。
+- 简单转交现有方法时可用方法引用：name -> System.out.println(name) 对应 System.out::println；student -> student.getStudentId() 对应 Student::getStudentId。
+- LambdaTest 当前实际代码只有 removeIf 前后打印。Predicate 导入尚未使用，forEach/方法引用已讲解但未写入该文件，不计为逐项运行验证。
+
+<a id="stream-2026-10-28"></a>
+
+#### Stream：用流水线处理数据
+
+List 保存数据，Stream 描述处理步骤，Lambda 提供筛选/转换等规则；这里的 Stream 不等于文件 IO 流，也不自动访问数据库。
+
+| 方法 | 本轮用途 |
+|---|---|
+| stream() | 从集合开始一条处理流水线 |
+| filter(predicate) | true 保留，false 排除 |
+| map(function) | 将每个元素转换为另一结果；不是 Map 键值容器 |
+| distinct() | 去重，字符串按 equals 语义判断相同 |
+| sorted(comparator) | 按比较规则排序传递的元素，不直接重排源 List |
+| limit(n) | 按当前顺序最多取前 n 个，不负责找最大值 |
+| toList() | 终端收集为不支持增删改的 List |
+| count() | 终端统计数量，返回 long，不自动去重 |
+
+- filter 返回 true 是保留；removeIf 返回 true 是删除，不能混淆。
+- 先筛选“小”开头，再加“学生：”前缀能得到结果；先加前缀再判断“小”开头会全部被过滤。
+- Stream 没有 size()；List.size() 返回 int。可 toList().size()，但只要数量时用 count() 不必收集列表。
+- Stream.toList() 不支持 add/remove/set；需要可编辑结果可 new ArrayList<>(结果列表)。列表不可改不等于其中可变对象的字段不能改。
+- 本轮练习中的流水线不改变源列表；并不是任何带副作用的 Stream 代码都保证如此。
+- 一条 Stream 完成终端操作后不能复用；可以从同一 List 再调用 stream() 创建新流。
+- distinct 不修改源列表，普通 count 包含重复元素。
+- sorted → limit 取排序后的前几项；limit → sorted 只会给原来前几项排序。
+- 排除负数应写 number >= 0，0 不是负数。
+
+综合练习：
+
+```java
+List<Integer> result = numbers.stream()
+        .filter(number -> number >= 0)
+        .distinct()
+        .sorted(Comparator.reverseOrder())
+        .limit(3)
+        .toList();
+```
+
+输入 [30,10,30,-5,20,40]，结果 [40,30,20]，原输入列表保持不变。本例已编译运行验证。
+
+<a id="maven-2026-10-28"></a>
+
+#### Maven：环境、创建项目、依赖与故障排查
+
+**环境检查与配置：**
+
+- 已读取 product-info.json，IDEA 版本为 2026.2.3，构建号 262.10968.63。
+- IDEA 自带 Maven 3.9.16，目录位于 IDEA 的 plugins/maven-plugin/lib/maven3，无需另行安装。
+- JDK 位于 D:/develop/jdk；JAVA_HOME 已配置，终端 PATH 当时未配置 Maven。
+- 在 IDEA 中选择 Bundled Maven 即可，不要求终端能直接识别 mvn。
+- 实际查看设置确认：Runner JRE 为已安装 JDK 25；JDK for importer 使用 Project JDK；pom.xml 的编译版本为 25；离线模式未勾选。
+- 默认本地仓库为用户目录下 .m2/repository，存放依赖和插件，不是源码。DB_PASSWORD 只用于 JDBC 程序，与 Maven 环境配置不是一回事。
+
+**创建与验证：**
+
+1. IDEA 新建 Java 项目，Build system 选择 Maven，使用已有 JDK。
+2. 练习项目 MavenStudy，坐标 com.zhangyihang:maven-study:1.0-SNAPSHOT。
+3. 识别 pom.xml、src/main/java、resources、test、target 的用途。
+4. 学习者反馈 package 打包成功；添加依赖后又在 IDEA 执行 mvn -U compile，实际观察到 BUILD SUCCESS。
+5. 当前 MavenStudy 的 src 未保存 Java 源文件，因此不宣称已经运行 HelloWorld 或日志示例；构建成功不等同于已有业务代码。
+
+**依赖：**
+
+依赖是项目使用的外部代码库；Maven 帮助获取和管理。JdbcStudy 的 MySQL 驱动与本项目 Logback 都是依赖。
+当前声明如下：
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
+        <version>1.6.6</version>
+    </dependency>
+</dependencies>
+```
+
+- groupId 为组织标识，artifactId 为组件标识，version 为所需版本。
+- dependencies 是全部依赖的容器，dependency 是其中一个依赖；不能误将 dependency 直接放在 project 下。
+- Logback 用于记录日志；声明依赖不等于自动产生日志业务逻辑，还要在代码中调用。
+- 版本在本次排查中已与中央仓库版本清单核对，1.6.6 存在，不能把下载报错直接判为版本不存在。
+- package/compile 及 Maven 生命周期目前初步接触，仓库、依赖范围和完整生命周期继续跟课学习。
+
+**这次报错的过程：**
+
+| 阶段 | 现象 | 定位与处理 |
+|---|---|---|
+| 依赖声明不完整 | groupId 写成 com.，未写 version | 改为完整坐标 |
+| 标签层级错误 | dependency 直接处于 project 下 | 保留外层 dependencies |
+| 编辑区与磁盘状态不一致 | 用户尚未手动保存时，磁盘读取不足以说明编辑区状态 | 结合 IDEA 实际界面；编辑器会实时检查，IDEA 也可能自动保存 |
+| 依赖下载失败 | Remote host terminated the handshake | HTTPS/TLS 连接被中断，不是 Java 语法问题 |
+| 失败缓存 | 普通重载暂不重新尝试 | -U 强制检查缺失依赖并重试 |
+| 最终验证 | IDEA 输出 BUILD SUCCESS，POM 红色错误消失 | 此次依赖解析和编译成功 |
+
+-U 只强制重试，并不能修复持续的网络握手故障。这次重试成功，不需要更改版本、关闭 TLS 校验或清空整个仓库。
+Maven 工具窗口的重载与执行构建不同；可连续两次 Ctrl 打开 Run Anything，再输入 mvn -U compile，使用 IDEA 配置的 Maven。
+
+参考：[IDEA Maven](https://www.jetbrains.com/help/idea/maven-support.html)、[Maven goals](https://www.jetbrains.com/help/idea/work-with-maven-goals.html)、[Maven -U 参数](https://maven.apache.org/ref/3-LATEST/maven-embedder/cli.html)、[Logback 设置](https://logback.qos.ch/setup.html)。
+
+<a id="review-2026-10-28"></a>
+
+#### 今日代码、验证范围与后续
+
+| 文件 | 本次实际检查/运行结果 |
+|---|---|
+| StudentMapTest | 新增 main；3、2、小林（新），验证源 List 不变与重复键覆盖 |
+| GenericMethodTest | 小林、10、null，确认调用泛型方法 |
+| LambdaTest | 删除前 [小林, ,    , 小周]，删除后 [小林, 小周] |
+| ListSortTest | 整数反转/升降序正确，学生按学号升序；多条件比较器未保存在当前文件 |
+| StreamTest | [学生：小林, 学生：小王]，源名单保留，有效姓名数量 3 |
+| StreamDistinctTest | 原名单 5 项，去重后 [小林, 小周, 小王]，数量 3 |
+| StreamPracticeTest | [40,30,20]，原始整数列表保留 |
+| MavenStudy/pom.xml | 声明 Logback；IDEA 中 -U compile 的 BUILD SUCCESS 已直接观察 |
+
+上传前用 JDK 25 编译 JdbcStudy 全部 16 个 Java 文件，并运行上表 7 个纯内存练习。没有重新运行数据库写入程序，也没有将 target、.idea、Maven 缓存或密码上传。
+源码保留原本格式与学习痕迹，未借上传顺便重构。Map/Stream 文件继续位于原 JdbcStudy；MavenStudy 作为单独子目录保存，空 src 不需要伪造文件。
+
+**下次起点：** 按已选择的 B 站课程从 Maven 继续，重点是仓库、依赖范围、compile/test/package/install；之后进入 HTTP、请求响应、JSON 与 JavaWeb。
+前端暂缓，前后端联调前补 HTML 表单、JavaScript 对象和请求基础；多线程、网络、反射注解等缺口继续保留在学习计划，不能默认全部学完。
 
 ## 每次学习后的更新规则
 
